@@ -1,0 +1,182 @@
+#include <iostream>
+
+using namespace std;
+
+// Node class represents each item in our AVL tree
+class AVLNode {
+public:
+    int data;          // Value of the node
+    int height;        // Height of the node
+    AVLNode* left;     // Pointer to the left child
+    AVLNode* right;    // Pointer to the right child
+
+    // Constructor to create a new node with a given value
+    AVLNode(int value) : data(value), height(1), left(nullptr), right(nullptr) {}
+};
+
+// AVLTree class represents our AVL tree
+class AVLTree {
+private:
+    AVLNode* root;    // Pointer to the root of the tree
+
+public:
+    // Constructor to create an empty AVL tree
+    AVLTree() : root(nullptr) {}
+
+    // Function to get the height of a node
+    int getHeight(AVLNode* node) {
+        if (node == nullptr) {
+            return 0;
+        }
+
+        return node->height;
+    }
+
+    // Function to calculate the balance factor of a node
+    int getBalanceFactor(AVLNode* node) {
+        if (node == nullptr) {
+            return 0;
+        }
+
+        return getHeight(node->left) - getHeight(node->right);
+    }
+
+    // Function to rotate the subtree rooted at 'y' to the right
+    AVLNode* rotateRight(AVLNode* y) {
+        AVLNode* x = y->left;
+        AVLNode* T2 = x->right;
+
+        // Perform rotation
+        x->right = y;
+        y->left = T2;
+
+        // Update heights
+        y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+        x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+
+        // Return the new root
+        return x;
+    }
+
+    // Function to rotate the subtree rooted at 'x' to the left
+    AVLNode* rotateLeft(AVLNode* x) {
+        AVLNode* y = x->right;
+        AVLNode* T2 = y->left;
+
+        // Perform rotation
+        y->left = x;
+        x->right = T2;
+
+        // Update heights
+        x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+        y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+
+        // Return the new root
+        return y;
+    }
+
+    // Function to insert a new value into the AVL tree
+    AVLNode* insert(AVLNode* node, int value) {
+        // Standard BST insertion
+        if (node == nullptr) {
+            return new AVLNode(value);
+        }
+
+        if (value < node->data) {
+            node->left = insert(node->left, value);
+        } else if (value > node->data) {
+            node->right = insert(node->right, value);
+        } else {
+            // Duplicate values are not allowed in this example
+            return node;
+        }
+
+        // Update height of the current node
+        node->height = 1 + max(getHeight(node->left), getHeight(node->right));
+
+        // Get the balance factor to check if the node became unbalanced
+        int balance = getBalanceFactor(node);
+
+        // Perform rotations if needed
+        // Left Left Case
+        if (balance > 1 && value < node->left->data) {
+            return rotateRight(node);
+        }
+        // Right Right Case
+        if (balance < -1 && value > node->right->data) {
+            return rotateLeft(node);
+        }
+        // Left Right Case
+        if (balance > 1 && value > node->left->data) {
+            node->left = rotateLeft(node->left);
+            return rotateRight(node);
+        }
+        // Right Left Case
+        if (balance < -1 && value < node->right->data) {
+            node->right = rotateRight(node->right);
+            return rotateLeft(node);
+        }
+
+        // Return the unchanged node if no rotations were needed
+        return node;
+    }
+
+    // Public function to insert a value into the AVL tree
+    void insert(int value) {
+        root = insert(root, value);
+    }
+
+    // Function to display the tree in inorder traversal
+    void displayInorder(AVLNode* node) {
+        if (node != nullptr) {
+            displayInorder(node->left);
+            cout << node->data << " ";
+            displayInorder(node->right);
+        }
+    }
+
+    // Public function to display the tree in inorder traversal
+    void displayInorder() {
+        cout << "Inorder: ";
+        displayInorder(root);
+        cout << "\n";
+    }
+};
+
+// Main function where the user interacts with the AVL Tree
+int main() {
+    AVLTree avlTree;
+    int choice, value;
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Insert an element\n";
+        cout << "2. Display elements in Inorder\n";
+        cout << "3. Exit\n";
+
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter element to insert: ";
+                cin >> value;
+                avlTree.insert(value);
+                break;
+
+            case 2:
+                avlTree.displayInorder();
+                break;
+
+            case 3:
+                cout << "Exiting program.\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    } while (choice != 3);
+
+    return 0;
+}
